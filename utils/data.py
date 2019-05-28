@@ -22,7 +22,7 @@ PADDING = "</pad>"
 class Data:
     def __init__(self):
         self.sentence_classification = False
-        self.MAX_SENTENCE_LENGTH = 250
+        self.MAX_SENTENCE_LENGTH = 512
         self.MAX_WORD_LENGTH = -1
         self.number_normalized = True
         self.norm_word_emb = False
