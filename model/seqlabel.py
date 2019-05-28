@@ -52,8 +52,8 @@ class SeqLabel(nn.Module):
         return total_loss, tag_seq
 
 
-    def forward(self, word_inputs, feature_inputs, word_seq_lengths, char_inputs, char_seq_lengths, char_seq_recover, mask):
-        outs = self.word_hidden(word_inputs,feature_inputs, word_seq_lengths, char_inputs, char_seq_lengths, char_seq_recover)
+    def forward(self, word_inputs, feature_inputs, word_seq_lengths, char_inputs, char_seq_lengths, char_seq_recover, mask,mb_expr):
+        outs = self.word_hidden(mb_expr,feature_inputs, word_seq_lengths, char_inputs, char_seq_lengths, char_seq_recover)
         batch_size = word_inputs.size(0)
         seq_len = word_inputs.size(1)
         if self.use_crf:
