@@ -295,6 +295,7 @@ class Data:
 
 
     def generate_instance(self, name):
+        self.MAX_SENTENCE_LENGTH=512  # force here!
         self.fix_alphabet()
         if name == "train":
             self.train_texts, self.train_Ids = read_instance(self.train_dir, self.word_alphabet, self.char_alphabet, self.feature_alphabets, self.label_alphabet, self.number_normalized, self.MAX_SENTENCE_LENGTH, self.sentence_classification, self.split_token)
