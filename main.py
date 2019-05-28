@@ -281,7 +281,7 @@ def batchify_sequence_labeling_with_label(input_batch_list, gpu, if_train=True):
         char_seq_recover = char_seq_recover.cuda()
         mask = mask.cuda()
         mb_tensor = mb_tensor.cuda()
-    return word_seq_tensor,feature_seq_tensors, word_seq_lengths, word_seq_recover, char_seq_tensor, char_seq_lengths, char_seq_recover, label_seq_tensor, mask
+    return word_seq_tensor,feature_seq_tensors, word_seq_lengths, word_seq_recover, char_seq_tensor, char_seq_lengths, char_seq_recover, label_seq_tensor, mask, mb_tensor
 
 
 def batchify_sentence_classification_with_label(input_batch_list, gpu, if_train=True):
