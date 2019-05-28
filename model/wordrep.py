@@ -88,7 +88,8 @@ class WordRep(nn.Module):
         batch_size = word_inputs.size(0)
         sent_len = word_inputs.size(1)
 
-        word_embs =  self.word_embedding(word_inputs)
+#         word_embs =  self.word_embedding(word_inputs)
+        word_embs = word_inputs
 
         word_list = [word_embs]
         if not self.sentence_classification:
