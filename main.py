@@ -173,7 +173,7 @@ def evaluate(data, model, name, nbest=None):
             ## select the best sequence to evalurate
             tag_seq = nbest_tag_seq[:,:,0]
         else:
-            tag_seq = model(batch_word, batch_features, batch_wordlen, batch_char, batch_charlen, batch_charrecover, mask)
+            tag_seq = model(batch_word, batch_features, batch_wordlen, batch_char, batch_charlen, batch_charrecover, mask, batch_mb)
         # print("tag:",tag_seq)
         pred_label, gold_label = recover_label(tag_seq, batch_label, mask, data.label_alphabet, batch_wordrecover, data.sentence_classification)
         pred_results += pred_label
