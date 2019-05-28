@@ -258,6 +258,18 @@ def batchify_sequence_labeling_with_label(input_batch_list, gpu, if_train=True):
     char_seq_tensor = char_seq_tensor[char_perm_idx]
     _, char_seq_recover = char_perm_idx.sort(0, descending=False)
     _, word_seq_recover = word_perm_idx.sort(0, descending=False)
+    ### deal with aux mb features
+    mb_arrs = []
+    padded_seq_len = max_seq_len
+    for sent in input_batch_list:
+        cur_arr = sent[-1][1:]
+        assert len(cur_arr) == len(sent[0])
+        cur_len = len(cur_arr)
+        if cur_len > padded_seq_len:
+            mb_arrs.append(cur_arr[:padded_seq_len])
+        else:
+            mb_arrs.append(np.pad(cur_arr, ((0, padded_seq_len - cur_len), (0, 0)), 'constant'))
+    mb_tensor = torch.as_tensor(np.stack(mb_arrs, 0), dtype=torch.float32)
     if gpu:
         word_seq_tensor = word_seq_tensor.cuda()
         for idx in range(feature_num):
@@ -268,6 +280,7 @@ def batchify_sequence_labeling_with_label(input_batch_list, gpu, if_train=True):
         char_seq_tensor = char_seq_tensor.cuda()
         char_seq_recover = char_seq_recover.cuda()
         mask = mask.cuda()
+        mb_tensor = mb_tensor.cuda()
     return word_seq_tensor,feature_seq_tensors, word_seq_lengths, word_seq_recover, char_seq_tensor, char_seq_lengths, char_seq_recover, label_seq_tensor, mask
 
 
