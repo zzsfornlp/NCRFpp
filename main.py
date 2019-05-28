@@ -269,7 +269,7 @@ def batchify_sequence_labeling_with_label(input_batch_list, gpu, if_train=True):
             mb_arrs.append(cur_arr[:padded_seq_len])
         else:
             mb_arrs.append(np.pad(cur_arr, ((0, padded_seq_len - cur_len), (0, 0)), 'constant'))
-    mb_tensor = torch.as_tensor(np.stack(mb_arrs, 0), dtype=torch.float32)
+    mb_tensor = torch.as_tensor(np.stack(mb_arrs, 0), dtype=torch.float32)[word_perm_idx]
     if gpu:
         word_seq_tensor = word_seq_tensor.cuda()
         for idx in range(feature_num):
@@ -361,7 +361,7 @@ def batchify_sentence_classification_with_label(input_batch_list, gpu, if_train=
             mb_arrs.append(cur_arr[:padded_seq_len])
         else:
             mb_arrs.append(np.pad(cur_arr, ((0, padded_seq_len - cur_len), (0, 0)), 'constant'))
-    mb_tensor = torch.as_tensor(np.stack(mb_arrs, 0), dtype=torch.float32)
+    mb_tensor = torch.as_tensor(np.stack(mb_arrs, 0), dtype=torch.float32)[word_perm_idx]
     #
     if gpu:
         word_seq_tensor = word_seq_tensor.cuda()
