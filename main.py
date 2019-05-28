@@ -164,9 +164,9 @@ def evaluate(data, model, name, nbest=None):
         instance = instances[start:end]
         if not instance:
             continue
-        batch_word, batch_features, batch_wordlen, batch_wordrecover, batch_char, batch_charlen, batch_charrecover, batch_label, mask  = batchify_with_label(instance, data.HP_gpu, False, data.sentence_classification)
+        batch_word, batch_features, batch_wordlen, batch_wordrecover, batch_char, batch_charlen, batch_charrecover, batch_label, mask, batch_mb  = batchify_with_label(instance, data.HP_gpu, False, data.sentence_classification)
         if nbest and not data.sentence_classification:
-            scores, nbest_tag_seq = model.decode_nbest(batch_word,batch_features, batch_wordlen, batch_char, batch_charlen, batch_charrecover, mask, nbest)
+            scores, nbest_tag_seq = model.decode_nbest(batch_word,batch_features, batch_wordlen, batch_char, batch_charlen, batch_charrecover, mask, nbest, batch_mb)
             nbest_pred_result = recover_nbest_label(nbest_tag_seq, mask, data.label_alphabet, batch_wordrecover)
             nbest_pred_results += nbest_pred_result
             pred_scores += scores[batch_wordrecover].cpu().data.numpy().tolist()
@@ -293,7 +293,7 @@ def batchify_sentence_classification_with_label(input_batch_list, gpu, if_train=
 
     batch_size = len(input_batch_list)
     words = [sent[0] for sent in input_batch_list]
-    features = [np.asarray(sent[1]) for sent in input_batch_list]    
+    features = [np.asarray(sent[1]) for sent in input_batch_list]
     feature_num = len(features[0])
     chars = [sent[2] for sent in input_batch_list]
     labels = [sent[3] for sent in input_batch_list]
@@ -337,6 +337,19 @@ def batchify_sentence_classification_with_label(input_batch_list, gpu, if_train=
     char_seq_tensor = char_seq_tensor[char_perm_idx]
     _, char_seq_recover = char_perm_idx.sort(0, descending=False)
     _, word_seq_recover = word_perm_idx.sort(0, descending=False)
+    ### deal with aux mb features
+    mb_arrs = []
+    padded_seq_len = max_seq_len
+    for sent in input_batch_list:
+        cur_arr = sent[-1][1:]
+        assert len(cur_arr) == len(sent[0])
+        cur_len = len(cur_arr)
+        if cur_len > padded_seq_len:
+            mb_arrs.append(cur_arr[:padded_seq_len])
+        else:
+            mb_arrs.append(np.pad(cur_arr, ((0, padded_seq_len - cur_len), (0, 0)), 'constant'))
+    mb_tensor = torch.as_tensor(np.stack(mb_arrs, 0), dtype=torch.float32)
+    #
     if gpu:
         word_seq_tensor = word_seq_tensor.cuda()
         for idx in range(feature_num):
@@ -347,7 +360,8 @@ def batchify_sentence_classification_with_label(input_batch_list, gpu, if_train=
         char_seq_tensor = char_seq_tensor.cuda()
         char_seq_recover = char_seq_recover.cuda()
         mask = mask.cuda()
-    return word_seq_tensor,feature_seq_tensors, word_seq_lengths, word_seq_recover, char_seq_tensor, char_seq_lengths, char_seq_recover, label_seq_tensor, mask
+        mb_tensor = mb_tensor.cuda()
+    return word_seq_tensor,feature_seq_tensors, word_seq_lengths, word_seq_recover, char_seq_tensor, char_seq_lengths, char_seq_recover, label_seq_tensor, mask, mb_tensor
 
 
 
@@ -407,9 +421,9 @@ def train(data):
             instance = data.train_Ids[start:end]
             if not instance:
                 continue
-            batch_word, batch_features, batch_wordlen, batch_wordrecover, batch_char, batch_charlen, batch_charrecover, batch_label, mask  = batchify_with_label(instance, data.HP_gpu, True, data.sentence_classification)
+            batch_word, batch_features, batch_wordlen, batch_wordrecover, batch_char, batch_charlen, batch_charrecover, batch_label, mask, batch_mb  = batchify_with_label(instance, data.HP_gpu, True, data.sentence_classification)
             instance_count += 1
-            loss, tag_seq = model.calculate_loss(batch_word, batch_features, batch_wordlen, batch_char, batch_charlen, batch_charrecover, batch_label, mask)
+            loss, tag_seq = model.calculate_loss(batch_word, batch_features, batch_wordlen, batch_char, batch_charlen, batch_charrecover, batch_label, mask, batch_mb)
             right, whole = predict_check(tag_seq, batch_label, mask, data.sentence_classification)
             right_token += right
             whole_token += whole
@@ -512,20 +526,20 @@ if __name__ == '__main__':
     parser.add_argument('--status', choices=['train', 'decode'], help='update algorithm', default='train')
     parser.add_argument('--savemodel', default="data/model/saved_model.lstmcrf.")
     parser.add_argument('--savedset', help='Dir of saved data setting')
-    parser.add_argument('--train', default="data/conll03/train.bmes") 
-    parser.add_argument('--dev', default="data/conll03/dev.bmes" )  
-    parser.add_argument('--test', default="data/conll03/test.bmes") 
-    parser.add_argument('--seg', default="True") 
-    parser.add_argument('--raw') 
+    parser.add_argument('--train', default="data/conll03/train.bmes")
+    parser.add_argument('--dev', default="data/conll03/dev.bmes" )
+    parser.add_argument('--test', default="data/conll03/test.bmes")
+    parser.add_argument('--seg', default="True")
+    parser.add_argument('--raw')
     parser.add_argument('--loadmodel')
-    parser.add_argument('--output') 
+    parser.add_argument('--output')
 
     args = parser.parse_args()
     data = Data()
     data.HP_gpu = torch.cuda.is_available()
     if args.config == 'None':
-        data.train_dir = args.train 
-        data.dev_dir = args.dev 
+        data.train_dir = args.train
+        data.dev_dir = args.dev
         data.test_dir = args.test
         data.model_dir = args.savemodel
         data.dset_dir = args.savedset
