@@ -22,7 +22,7 @@ PADDING = "</pad>"
 class Data:
     def __init__(self):
         self.sentence_classification = False
-        self.MAX_SENTENCE_LENGTH = 512
+        self.MAX_SENTENCE_LENGTH = 250
         self.MAX_WORD_LENGTH = -1
         self.number_normalized = True
         self.norm_word_emb = False
@@ -295,7 +295,7 @@ class Data:
 
 
     def generate_instance(self, name):
-        self.MAX_SENTENCE_LENGTH=512  # force here!
+#         self.MAX_SENTENCE_LENGTH=512  # force here!
         self.fix_alphabet()
         if name == "train":
             self.train_texts, self.train_Ids = read_instance(self.train_dir, self.word_alphabet, self.char_alphabet, self.feature_alphabets, self.label_alphabet, self.number_normalized, self.MAX_SENTENCE_LENGTH, self.sentence_classification, self.split_token)
@@ -332,7 +332,7 @@ class Data:
                 sent_length = len(predict_results[idx])
                 for idy in range(sent_length):
                     ## content_list[idx] is a list with [word, char, label]
-                    fout.write(content_list[idx][0][idy].encode('utf-8') + " " + predict_results[idx][idy] + '\n')
+                    fout.write(content_list[idx][0][idy] + " " + predict_results[idx][idy] + '\n')
                 fout.write('\n')
         fout.close()
         print("Predict %s result has been written into file. %s"%(name, self.decode_dir))
