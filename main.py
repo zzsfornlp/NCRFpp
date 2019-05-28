@@ -579,6 +579,10 @@ if __name__ == '__main__':
         data.generate_instance('test')
         data.build_pretrain_emb()
         train(data)
+        #
+        data.generate_instance('raw')
+        print("nbest: %s"%(data.nbest))
+        decode_results, pred_scores = load_model_decode(data, 'raw')
     elif status == 'decode':
         print("MODEL: decode")
         data.load(data.dset_dir)
