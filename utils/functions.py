@@ -7,6 +7,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import sys
 import numpy as np
+import pickle
 
 def normalize_word(word):
     new_word = ""
@@ -31,6 +32,9 @@ def read_instance(input_file, word_alphabet, char_alphabet, feature_alphabets, l
     feature_Ids = []
     char_Ids = []
     label_Ids = []
+
+    #
+    mb_fd = open(input_file+".mb.pkl", 'rb')
 
     ## if sentence classification data format, splited by \t
     if sentence_classification:
@@ -135,8 +139,10 @@ def read_instance(input_file, word_alphabet, char_alphabet, feature_alphabets, l
                 char_Ids.append(char_Id)
             else:
                 if (len(words) > 0) and ((max_sent_length < 0) or (len(words) < max_sent_length)) :
+                    mb_arr = pickle.load(mb_fd)
+                    assert mb_arr.shape == (len(word_Ids)+1, 786)
                     instence_texts.append([words, features, chars, labels])
-                    instence_Ids.append([word_Ids, feature_Ids, char_Ids,label_Ids])
+                    instence_Ids.append([word_Ids, feature_Ids, char_Ids,label_Ids, mb_arr])
                 words = []
                 features = []
                 chars = []
@@ -146,8 +152,10 @@ def read_instance(input_file, word_alphabet, char_alphabet, feature_alphabets, l
                 char_Ids = []
                 label_Ids = []
         if (len(words) > 0) and ((max_sent_length < 0) or (len(words) < max_sent_length)) :
+            mb_arr = pickle.load(mb_fd)
+            assert mb_arr.shape == (len(word_Ids) + 1, 786)
             instence_texts.append([words, features, chars, labels])
-            instence_Ids.append([word_Ids, feature_Ids, char_Ids,label_Ids])
+            instence_Ids.append([word_Ids, feature_Ids, char_Ids,label_Ids, mb_arr])
             words = []
             features = []
             chars = []
@@ -156,6 +164,8 @@ def read_instance(input_file, word_alphabet, char_alphabet, feature_alphabets, l
             feature_Ids = []
             char_Ids = []
             label_Ids = []
+
+    mb_fd.close()
     return instence_texts, instence_Ids
 
 
