@@ -140,7 +140,7 @@ def read_instance(input_file, word_alphabet, char_alphabet, feature_alphabets, l
             else:
                 if (len(words) > 0) and ((max_sent_length < 0) or (len(words) < max_sent_length)) :
                     mb_arr = pickle.load(mb_fd)
-                    assert mb_arr.shape == (len(word_Ids)+1, 786)
+                    assert mb_arr.shape == (len(word_Ids)+1, 768)
                     instence_texts.append([words, features, chars, labels])
                     instence_Ids.append([word_Ids, feature_Ids, char_Ids,label_Ids, mb_arr])
                 words = []
