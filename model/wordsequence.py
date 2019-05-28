@@ -23,7 +23,8 @@ class WordSequence(nn.Module):
         self.bilstm_flag = data.HP_bilstm
         self.lstm_layer = data.HP_lstm_layer
         self.wordrep = WordRep(data)
-        self.input_size = data.word_emb_dim
+#         self.input_size = data.word_emb_dim
+        self.input_size = 768
         self.feature_num = data.feature_num
         if self.use_char:
             self.input_size += data.HP_char_hidden_dim
